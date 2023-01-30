@@ -1,0 +1,22 @@
+name: Butane CI
+
+on: [push]
+
+jobs:
+  conitainer_build:
+    runs-on: ubuntu-latest
+    container:
+      image: quay.io/coreos/butane:release
+      options: --cpus 1
+      
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+      - name: transpile butane to ignition file
+        run: |
+          docker run --interactive --rm quay.io/coreos/butane:release --pretty --strict < thinkpad_coreos_config.bu > transpiled_config.ign
+      - name: Archive production artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: transpiled iginition
+          path: dist/transpiled_config.ign
