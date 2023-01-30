@@ -10,6 +10,7 @@ jobs:
       options: --cpus 1
       
     steps:
+      - uses: actions/checkout@v3
       - name: transpile butane to ignition file
         run: |
           docker run --interactive --rm quay.io/coreos/butane:release --pretty --strict < thinkpad_coreos_config.bu > transpiled_config.ign
