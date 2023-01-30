@@ -13,7 +13,7 @@ jobs:
       - uses: actions/checkout@v3
       - name: transpile butane to ignition file
         run: |
-          docker run --interactive --rm quay.io/coreos/butane:release --pretty --strict < thinkpad_coreos_config.bu > transpiled_config.ign
+          docker run --interactive --rm quay.io/coreos/butane:release --pretty --strict < ${PWD}/thinkpad_coreos_config.bu > ${PWD}/transpiled_config.ign
       - name: Archive production artifacts
         uses: actions/upload-artifact@v3
         with:
