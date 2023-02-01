@@ -23,7 +23,7 @@ systemd:
         TimeoutStopSec=70
         ExecStartPre=/bin/podman rm -i -f %N
         ExecStartPre=/bin/rm -f %t/%n.ctr-id
-        ExecStart=/usr/bin/podman run --conmon-pidfile %t/container-cuddly_jellyfin.pid --cidfile=%t/%n.ctr-id --cgroups=no-conmon --replace --detach --label io.containers.autoupdate=registry --name cuddly_jellyfin --publish 8096:8096/tcp --user 1000:1000 --userns keep-id --volume jellyfin-cache:/cache:Z --volume jellyfin-config:/config:Z --mount type=bind,source=/var/home/core/multimedia/,destination=/media,ro=true docker.io/jellyfin/jellyfin:latest
+        ExecStart=/usr/bin/podman run --conmon-pidfile %t/container-cuddly_jellyfin.pid --cidfile=%t/%n.ctr-id --cgroups=no-conmon --detach --replace --cgroup-manager=systemd --volume jellyfin-cache:/cache:Z --volume jellyfin-config:/config:Z --volume jellyfin-media:/media:z --publish 8096:8096/tcp --user 1000:1000 --userns keep-id --name cuddly_jellyfin docker.io/jellyfin/jellyfin:latest
         ExecStop=/usr/bin/podman stop --ignore -t 10 --cidfile=%t/%n.ctr-id
         ExecStopPost=/usr/bin/podman rm -f --ignore -t 10 --cidfile=%t/%n.ctr-id
         PIDFile=%t/container-cuddly_jellyfin.pid
