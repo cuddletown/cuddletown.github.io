@@ -12,12 +12,29 @@
       }
     ]
   },
+  "storage": {
+    "files": [
+      {
+        "overwrite": true,
+        "path": "/etc/yum.repos.d/tailscale.repo",
+        "contents": {
+          "compression": "gzip",
+          "source": "data:;base64,H4sIAAAAAAAC/4yNsa4CIRBF+/mKV7xWcFsT/sLOGDPLXsEAywTGYv/ekI1b252czJl7U37l7jnj1JXnjDutXOCuX/23a5q5492yi6rSL9ZKCt0csfG12P3SPrHUxvZ/FNx8JKzDL24i3QSuSaEGqY8gwUf45CY68DwwYft9Z7wyQQJ9AgAA///yWu26ywAAAA=="
+        }
+      }
+    ]
+  },
   "systemd": {
     "units": [
       {
-        "contents": "[Unit]\nDescription=container-cuddly_jellyfin.service\nDocumentation=man:podman-generate-systemd(1)\nWants=network-online.target\nAfter=network-online.target\nRequiresMountsFor=%t/containers\n\n[Service]\nEnvironment=PODMAN_SYSTEMD_UNIT=%n\nRestart=on-failure\nTimeoutStopSec=70\nExecStartPre=/bin/podman rm -i -f %N\nExecStartPre=/bin/rm -f %t/%n.ctr-id\nExecStart=/usr/bin/podman run --conmon-pidfile %t/container-cuddly_jellyfin.pid --cidfile=%t/%n.ctr-id --cgroups=no-conmon --detach --replace --cgroup-manager=systemd --volume jellyfin-cache:/cache:Z --volume jellyfin-config:/config:Z --volume /var/home/core/multimedia:/media:Z --publish 8096:8096/tcp --user 1000:1000 --userns keep-id --name cuddly_jellyfin docker.io/jellyfin/jellyfin:latest\nExecStop=/usr/bin/podman stop --ignore -t 10 --cidfile=%t/%n.ctr-id\nExecStopPost=/usr/bin/podman rm -f --ignore -t 10 --cidfile=%t/%n.ctr-id\nPIDFile=%t/container-cuddly_jellyfin.pid\nKillMode=control-group\nType=forking\n\nPrivateTmp=yes\nNoNewPrivileges=yes\nProtectSystem=strict\nProtectHome=yes\nProtectKernelTunables=yes\nProtectControlGroups=yes\nPrivateMounts=yes\nProtectHostname=yes\n\n[Install]\nWantedBy=multi-user.target default.target\n",
+        "contents": "[Unit]\nDescription=Podman container-cuddly_jellyfin.service\nDocumentation=man:podman-generate-systemd(1)\nWants=network-online.target\nAfter=network-online.target\nRequiresMountsFor=%t/containers\n\n[Service]\nEnvironment=PODMAN_SYSTEMD_UNIT=%n\nRestart=on-failure\nTimeoutStopSec=70\nExecStartPre=/bin/rm -f %t/%n.ctr-id\nExecStart=/usr/bin/podman run --cidfile=%t/%n.ctr-id --cgroups=no-conmon --rm --sdnotify=conmon --replace --detach --label io.containers.autoupdate=registry --name cuddly_jellyfin --publish 8096:8096/tcp --user 1000:1000 --userns keep-id --volume jellyfin-cache:/cache:Z --volume jellyfin-config:/config:Z --volume /var/home/core/multimedia:/media:Z docker.io/jellyfin/jellyfin:latest\nExecStop=/usr/bin/podman stop --ignore -t 10 --cidfile=%t/%n.ctr-id\nExecStopPost=/usr/bin/podman rm -f --ignore -t 10 --cidfile=%t/%n.ctr-id\nType=notify\nNotifyAccess=all\n\n[Install]\nWantedBy=default.target\n",
         "enabled": true,
         "name": "cuddly_jellyfin.service"
+      },
+      {
+        "contents": "[Unit]\nDescription=Layer tailscale with rpm-ostree\nWants=network-online.target\nAfter=network-online.target\n# We run before `zincati.service` to avoid conflicting rpm-ostree\n# transactions.\nBefore=zincati.service\nConditionPathExists=!/var/lib/%N.stamp\n\n[Service]\nType=oneshot\nRemainAfterExit=yes\n# `--allow-inactive` ensures that rpm-ostree does not return an error\n# if the package is already installed. This is useful if the package is\n# added to the root image in a future Fedora CoreOS release as it will\n# prevent the service from failing.\nExecStart=/usr/bin/rpm-ostree install --apply-live --allow-inactive tailscale\nExecStart=/bin/touch /var/lib/%N.stamp\n\n[Install]\nWantedBy=multi-user.target\n",
+        "enabled": true,
+        "name": "rpm-ostree-install-tailscale.service"
       }
     ]
   }
