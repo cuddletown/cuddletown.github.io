@@ -15,6 +15,14 @@
   "storage": {
     "files": [
       {
+        "path": "/etc/hostname",
+        "contents": {
+          "compression": "",
+          "source": "data:,cm"
+        },
+        "mode": 420
+      },
+      {
         "overwrite": true,
         "path": "/etc/yum.repos.d/tailscale.repo",
         "contents": {

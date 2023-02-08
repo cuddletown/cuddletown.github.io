@@ -7,6 +7,10 @@ passwd:
         - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQCNYOFhNhvdHfCPsDhLAVO3O8bEmUNi2MQHYQX6/sMLQx1osSOFd5tM05jKwhMG8g/unzVHbKaNnomRHl/46zX0cEQeXTZVmn98se0SssUjRDhdCGhpKFhRhW2F22Z94zLtF5YqfUYegkG0A06p6QUy00zK98BllxnXdJfLofHKC6iIPOrhCbKk/5HzHPX8OfBIDMe/avKe/XOHIikksG/vZuHgQ8r0a6NA0nEkRAMVcLLoIr2UNJEhLv1Y+YQ2EkA/ZAIxuseEiZ838tcaJjBwrQQupxK1z9vb1YyP5CaZqfo9spyV35IDBaRh9VhQklHXAHXsXpPUPJmUzD1uexcUaiZy0xQwnEK6FtaoHnG/xNPIvQUAimwwktqFMICNbmaxZZD956mjDbMdpYMS+JuU96kUK2foa8kORA1zlv9QlKf0pByOZipDoDa9RaWXh6I5ZLplLjCDMI9F3q+sYe1BBwoJ0DWPBEtdkjmVvd0Km/2RidcRiNgNQ8fwgC6izS0= m@cu
 storage:
   files:
+    - path: /etc/hostname
+      mode: 0644
+      contents:
+        inline: cm
     - path: /etc/yum.repos.d/tailscale.repo
       overwrite: true
       contents:
