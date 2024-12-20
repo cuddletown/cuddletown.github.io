@@ -40,9 +40,19 @@
         "name": "cuddly_jellyfin.service"
       },
       {
+        "contents": "[Unit]\nDescription=Podman container-cuddly_homeassistant.service\nDocumentation=man:podman-generate-systemd(1)\nWants=network-online.target\nAfter=network-online.target\nRequiresMountsFor=%t/containers\n\n[Service]\nEnvironment=PODMAN_SYSTEMD_UNIT=%n\nRestart=on-failure\nRestartSec=30\nTimeoutStopSec=70\nExecStartPre=/bin/rm -f %t/%n.ctr-id\nExecStart=/usr/bin/podman run --cidfile=%t/%n.ctr-id --cgroups=no-conmon --rm --sdnotify=conmon --replace --detach --label io.containers.autoupdate=registry --name cuddly_homeassistant --publish 8000:8000/tcp --user 999:999 --userns keep-id --volume /var/home/core/hass/hass:/config:Z ghcr.io/home-assistant/home-assistant:stable\nExecStop=/usr/bin/podman stop --ignore -t 10 --cidfile=%t/%n.ctr-id\nExecStopPost=/usr/bin/podman rm -f --ignore -t 10 --cidfile=%t/%n.ctr-id\nType=notify\nNotifyAccess=all\n\n[Install]\nWantedBy=default.target\n",
+        "enabled": true,
+        "name": "cuddly_homeassistant.service"
+      },
+      {
         "contents": "[Unit]\nDescription=Layer tailscale with rpm-ostree\nWants=network-online.target\nAfter=network-online.target\n# We run before `zincati.service` to avoid conflicting rpm-ostree\n# transactions.\nBefore=zincati.service\nConditionPathExists=!/var/lib/%N.stamp\n\n[Service]\nType=oneshot\nRemainAfterExit=yes\n# `--allow-inactive` ensures that rpm-ostree does not return an error\n# if the package is already installed. This is useful if the package is\n# added to the root image in a future Fedora CoreOS release as it will\n# prevent the service from failing.\nExecStart=/usr/bin/rpm-ostree install --apply-live --allow-inactive tailscale\nExecStart=/bin/touch /var/lib/%N.stamp\n\n[Install]\nWantedBy=multi-user.target\n",
         "enabled": true,
         "name": "rpm-ostree-install-tailscale.service"
+      },
+      {
+        "contents": "[Unit]\nDescription=Layer borgbackup with rpm-ostree\nWants=network-online.target\nAfter=network-online.target\n# We run before `zincati.service` to avoid conflicting rpm-ostree\n# transactions.\nBefore=zincati.service\nConditionPathExists=!/var/lib/%N.stamp\n\n[Service]\nType=oneshot\nRemainAfterExit=yes\n# `--allow-inactive` ensures that rpm-ostree does not return an error\n# if the package is already installed. This is useful if the package is\n# added to the root image in a future Fedora CoreOS release as it will\n# prevent the service from failing.\nExecStart=/usr/bin/rpm-ostree install --apply-live --allow-inactive borgbackup\nExecStart=/bin/touch /var/lib/%N.stamp\n\n[Install]\nWantedBy=multi-user.target\n",
+        "enabled": true,
+        "name": "rpm-ostree-install-borgbackup.service"
       }
     ]
   }
