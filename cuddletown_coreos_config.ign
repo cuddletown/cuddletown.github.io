@@ -1,0 +1,82 @@
+{
+  "ignition": {
+    "version": "3.5.0"
+  },
+  "passwd": {
+    "users": [
+      {
+        "groups": [
+          "wheel",
+          "sudo"
+        ],
+        "name": "cuddletown",
+        "sshAuthorizedKeys": [
+          "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQCNYOFhNhvdHfCPsDhLAVO3O8bEmUNi2MQHYQX6/sMLQx1osSOFd5tM05jKwhMG8g/unzVHbKaNnomRHl/46zX0cEQeXTZVmn98se0SssUjRDhdCGhpKFhRhW2F22Z94zLtF5YqfUYegkG0A06p6QUy00zK98BllxnXdJfLofHKC6iIPOrhCbKk/5HzHPX8OfBIDMe/avKe/XOHIikksG/vZuHgQ8r0a6NA0nEkRAMVcLLoIr2UNJEhLv1Y+YQ2EkA/ZAIxuseEiZ838tcaJjBwrQQupxK1z9vb1YyP5CaZqfo9spyV35IDBaRh9VhQklHXAHXsXpPUPJmUzD1uexcUaiZy0xQwnEK6FtaoHnG/xNPIvQUAimwwktqFMICNbmaxZZD956mjDbMdpYMS+JuU96kUK2foa8kORA1zlv9QlKf0pByOZipDoDa9RaWXh6I5ZLplLjCDMI9F3q+sYe1BBwoJ0DWPBEtdkjmVvd0Km/2RidcRiNgNQ8fwgC6izS0= m@cu"
+        ]
+      }
+    ]
+  },
+  "storage": {
+    "directories": [
+      {
+        "overwrite": true,
+        "path": "/var/home/cuddletown/multimedia/movies"
+      },
+      {
+        "overwrite": true,
+        "path": "/var/home/cuddletown/multimedia/shows"
+      },
+      {
+        "overwrite": true,
+        "path": "/var/home/cuddletown/hass/hass"
+      }
+    ],
+    "files": [
+      {
+        "path": "/etc/hostname",
+        "contents": {
+          "compression": "",
+          "source": "data:,cuddletown"
+        },
+        "mode": 420
+      },
+      {
+        "overwrite": true,
+        "path": "/etc/yum.repos.d/tailscale.repo",
+        "contents": {
+          "compression": "gzip",
+          "source": "data:;base64,H4sIAAAAAAAC/4yNsQoCMRBE+/0KC1sTrhXyF3YispcbE0lyWZK1uL+XcCjY2Q2PeTNX5WfunjNOXXnOuNHKBe7ywYcd08wdr5ZdVJV+tlZS6OYrG1+L3Zv2gaU2tsdhcPORsA6+uIl0E7gmhRqk3oMEH+GTm+g3Jmz//4wpEyTQOwAA//8DX6HTywAAAA=="
+        }
+      }
+    ]
+  },
+  "systemd": {
+    "units": [
+      {
+        "contents": "[Unit]\nDescription=Layer fwupd deps with rpm-ostree\nWants=network-online.target\nAfter=network-online.target\n# We run before `zincati.service` to avoid conflicting rpm-ostree\n# transactions.\nBefore=zincati.service\nConditionPathExists=!/var/lib/%N.stamp\n\n[Service]\nType=oneshot\nRemainAfterExit=yes\n# `--allow-inactive` ensures that rpm-ostree does not return an error\n# if the package is already installed. This is useful if the package is\n# added to the root image in a future Fedora CoreOS release as it will\n# prevent the service from failing.\nExecStart=/usr/bin/rpm-ostree install --apply-live --allow-inactive udisks2 fwupd-plugin-flashrom fwupd-plugin-modem-manager fwupd-plugin-uefi-capsule-data fwupd-efi\nExecStart=/bin/touch /var/lib/%N.stamp\n\n[Install]\nWantedBy=multi-user.target\n",
+        "enabled": true,
+        "name": "rpm-ostree-install-fwupd.service"
+      },
+      {
+        "contents": "[Unit]\nDescription=Layer tailscale with rpm-ostree\nWants=network-online.target\nAfter=network-online.target\n# We run before `zincati.service` to avoid conflicting rpm-ostree\n# transactions.\nBefore=zincati.service\nConditionPathExists=!/var/lib/%N.stamp\n\n[Service]\nType=oneshot\nRemainAfterExit=yes\n# `--allow-inactive` ensures that rpm-ostree does not return an error\n# if the package is already installed. This is useful if the package is\n# added to the root image in a future Fedora CoreOS release as it will\n# prevent the service from failing.\nExecStart=/usr/bin/rpm-ostree install --apply-live --allow-inactive tailscale\nExecStart=/bin/touch /var/lib/%N.stamp\n\n[Install]\nWantedBy=multi-user.target\n",
+        "enabled": true,
+        "name": "rpm-ostree-install-tailscale.service"
+      },
+      {
+        "contents": "[Unit]\nDescription=Layer borgbackup with rpm-ostree\nWants=network-online.target\nAfter=network-online.target\n# We run before `zincati.service` to avoid conflicting rpm-ostree\n# transactions.\nBefore=zincati.service\nConditionPathExists=!/var/lib/%N.stamp\n\n[Service]\nType=oneshot\nRemainAfterExit=yes\n# `--allow-inactive` ensures that rpm-ostree does not return an error\n# if the package is already installed. This is useful if the package is\n# added to the root image in a future Fedora CoreOS release as it will\n# prevent the service from failing.\nExecStart=/usr/bin/rpm-ostree install --apply-live --allow-inactive borgbackup\nExecStart=/bin/touch /var/lib/%N.stamp\n\n[Install]\nWantedBy=multi-user.target\n",
+        "enabled": true,
+        "name": "rpm-ostree-install-borgbackup.service"
+      },
+      {
+        "contents": "[Unit]\nDescription=Podman container-cuddly_jellyfin.service\nDocumentation=man:podman-generate-systemd(1)\nWants=network-online.target\nAfter=network-online.target\nRequiresMountsFor=%t/containers\n\n[Service]\nEnvironment=PODMAN_SYSTEMD_UNIT=%n\nRestart=on-failure\nRestartSec=30\nTimeoutStopSec=70\nExecStartPre=/bin/rm -f %t/%n.ctr-id\nExecStartPre=/bin/podman pull docker.io/jellyfin/jellyfin:latest\nExecStart=/usr/bin/podman run --cidfile=%t/%n.ctr-id --cgroups=no-conmon --rm --sdnotify=conmon --replace --detach --label io.containers.autoupdate=registry --name cuddly_jellyfin --publish 8096:8096/tcp --user 1000:1000 --userns keep-id --volume jellyfin-cache:/cache:Z --volume jellyfin-config:/config:Z --volume /var/home/cuddletown/multimedia:/media:Z docker.io/jellyfin/jellyfin:latest\nExecStop=/usr/bin/podman stop --ignore -t 10 --cidfile=%t/%n.ctr-id\nExecStopPost=/usr/bin/podman rm -f --ignore -t 10 --cidfile=%t/%n.ctr-id\nType=notify\nNotifyAccess=all\n\n[Install]\nWantedBy=default.target\n",
+        "enabled": true,
+        "name": "cuddly_jellyfin.service"
+      },
+      {
+        "contents": "[Unit]\nDescription=Podman container-cuddly_homeassistant.service\nDocumentation=man:podman-generate-systemd(1)\nWants=network-online.target\nAfter=network-online.target\nRequiresMountsFor=%t/containers\n\n[Service]\nEnvironment=PODMAN_SYSTEMD_UNIT=%n\nRestart=on-failure\nRestartSec=30\nTimeoutStopSec=70\nExecStartPre=/bin/rm -f %t/%n.ctr-id\nExecStartPre=/bin/podman pull ghcr.io/home-assistant/home-assistant:stable\nExecStart=/usr/bin/podman run --cidfile=%t/%n.ctr-id --cgroups=no-conmon --rm --sdnotify=conmon --replace --detach --label io.containers.autoupdate=registry --name cuddly_homeassistant --publish 8123:8123/tcp --volume=/var/home/cuddletown/hass/hass:/config:Z ghcr.io/home-assistant/home-assistant:stable\nExecStop=/usr/bin/podman stop --ignore -t 10 --cidfile=%t/%n.ctr-id\nExecStopPost=/usr/bin/podman rm -f --ignore -t 10 --cidfile=%t/%n.ctr-id\nType=notify\nNotifyAccess=all\n\n[Install]\nWantedBy=default.target\n",
+        "enabled": true,
+        "name": "cuddly_homeassistant.service"
+      }
+    ]
+  }
+}
