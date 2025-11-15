@@ -8,11 +8,43 @@ passwd:
         - sudo
       ssh_authorized_keys:
         - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQCNYOFhNhvdHfCPsDhLAVO3O8bEmUNi2MQHYQX6/sMLQx1osSOFd5tM05jKwhMG8g/unzVHbKaNnomRHl/46zX0cEQeXTZVmn98se0SssUjRDhdCGhpKFhRhW2F22Z94zLtF5YqfUYegkG0A06p6QUy00zK98BllxnXdJfLofHKC6iIPOrhCbKk/5HzHPX8OfBIDMe/avKe/XOHIikksG/vZuHgQ8r0a6NA0nEkRAMVcLLoIr2UNJEhLv1Y+YQ2EkA/ZAIxuseEiZ838tcaJjBwrQQupxK1z9vb1YyP5CaZqfo9spyV35IDBaRh9VhQklHXAHXsXpPUPJmUzD1uexcUaiZy0xQwnEK6FtaoHnG/xNPIvQUAimwwktqFMICNbmaxZZD956mjDbMdpYMS+JuU96kUK2foa8kORA1zlv9QlKf0pByOZipDoDa9RaWXh6I5ZLplLjCDMI9F3q+sYe1BBwoJ0DWPBEtdkjmVvd0Km/2RidcRiNgNQ8fwgC6izS0= m@cu
+
 storage:
+  disks:
+  - device: /dev/disk/by-id/wwn-0x5000039ae8d2ae64
+    wipe_table: true
+    partitions:
+    - label: "raid.1.1"
+      number: 1
+      size_mib: 0
+      start_mib: 0
+        
+  - device: /dev/disk/by-id/wwn-0x5000c500d5a9948a
+    wipe_table: true
+    partitions:
+    - label: "raid.1.2"
+      number: 1
+      size_mib: 0
+      start_mib: 0
+ 
+  raid:
+    - name: data
+      level: raid10
+      devices:
+      - /dev/disk/by-partlabel/raid.1.1
+      - /dev/disk/by-partlabel/raid.1.2
+  
+  filesystems:
+   - path: /var/data
+     device: /dev/md/data
+     format: btrfs
+     label: DATA
+     with_mount_unit: true
+    
   directories:
-    - path: /var/home/cuddletown/multimedia/movies
+    - path: /var/data/multimedia/movies
       overwrite: true
-    - path: /var/home/cuddletown/multimedia/shows
+    - path: /var/data/multimedia/shows
       overwrite: true
     - path: /var/home/cuddletown/hass/hass
       overwrite: true
@@ -128,7 +160,7 @@ systemd:
         TimeoutStopSec=70
         ExecStartPre=/bin/rm -f %t/%n.ctr-id
         ExecStartPre=/bin/podman pull docker.io/jellyfin/jellyfin:latest
-        ExecStart=/usr/bin/podman run --cidfile=%t/%n.ctr-id --cgroups=no-conmon --rm --sdnotify=conmon --replace --detach --label io.containers.autoupdate=registry --name cuddly_jellyfin --publish 8096:8096/tcp --user 1000:1000 --userns keep-id --volume jellyfin-cache:/cache:Z --volume jellyfin-config:/config:Z --volume /var/home/cuddletown/multimedia:/media:Z docker.io/jellyfin/jellyfin:latest
+        ExecStart=/usr/bin/podman run --cidfile=%t/%n.ctr-id --cgroups=no-conmon --rm --sdnotify=conmon --replace --detach --label io.containers.autoupdate=registry --name cuddly_jellyfin --publish 8096:8096/tcp --user 1000:1000 --userns keep-id --volume jellyfin-cache:/cache:Z --volume jellyfin-config:/config:Z --volume /var/data/multimedia:/media:Z docker.io/jellyfin/jellyfin:latest
         ExecStop=/usr/bin/podman stop --ignore -t 10 --cidfile=%t/%n.ctr-id
         ExecStopPost=/usr/bin/podman rm -f --ignore -t 10 --cidfile=%t/%n.ctr-id
         Type=notify
@@ -162,7 +194,3 @@ systemd:
 
         [Install]
         WantedBy=default.target
-
-
-  
-      
